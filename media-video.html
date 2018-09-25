@@ -1,18 +1,4 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../materializecss-styles/materializecss-styles.html">
-<link rel="import" href="../hax-body-behaviors/hax-body-behaviors.html">
-<link rel="import" href="../schema-behaviors/schema-behaviors.html">
-<!--
-`media-video`
-A LRN element
-
-@demo demo/index.html
-
-@microcopy - the mental model for this element
- -
- -
-
--->
 
 <dom-module id="media-video">
   <template>
@@ -21,72 +7,64 @@ A LRN element
         display: block;
       }
     </style>
-    <h2>[[title]]</h2>
+    <slot></slot>
   </template>
 
   <script>
     Polymer({
 
       is: 'media-video',
-      behaviors: [HAXBehaviors.PropertiesBehaviors, MaterializeCSSBehaviors.ColorBehaviors, SchemaBehaviors.Schema],
+      behaviors: [],
       properties: {
-        /**
-         * Title
-         */
-        title: {
-          type: String,
-        },
       },
-      /**
-       * Attached to the DOM, now fire.
-       */
-      attached: function() {
-        // Establish hax property binding
-        let props = {
-          'canScale': true,
-          'canPosition': true,
-          'canEditSource': false,
-          'gizmo': {
-            'title': 'Sample gizmo',
-            'description': 'The user will be able to see this for selection in a UI.',
-            'icon': 'av:play-circle-filled',
-            'color': 'grey',
-            'groups': ['Video', 'Media'],
-            'handles': [
-              {
-                'type': 'video',
-                'url': 'source'
-              }
-            ],
-            'meta': {
-              'author': 'Your organization on github'
-            }
-          },
-          'settings': {
-            'quick': [
-              {
-                'property': 'title',
-                'title': 'Title',
-                'description': 'The title of the element',
-                'inputMethod': 'textfield',
-                'icon': 'editor:title',
-              },
-            ],
-            'configure': [
-              {
-                'property': 'title',
-                'title': 'Title',
-                'description': 'The title of the element',
-                'inputMethod': 'textfield',
-                'icon': 'editor:title',
-              },
-            ],
-            'advanced': [
-            ]
+
+      ready: function() {
+        const videoSrc = this.querySelector('*[data-mediavideo-src]');
+        this.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const target = Polymer.dom(e).localTarget;
+          const videoContainer = this.querySelector('.mediavideo');
+          const videoPoster = this.querySelector('.mediavideo-button-container');
+          const videoSrc = this.querySelector('*[data-mediavideo-src]');
+          videoPoster.classList.toggle('mediavideo-button-display');
+          // Add the is-open tag to the base element.
+          videoContainer.classList.toggle('mediavideo--is-open');
+          if (target.classList.contains('poster--image') ||
+              target.classList.contains('mediavideo-icon')) {
+            // Give the animation enough time to complete.
+            setTimeout(() => {
+              this._startIframeVideo(videoSrc);
+            }, 500);
           }
-        };
-        this.setHaxProperties(props);
+          else {
+            this._stopIframeVideo(videoSrc);
+          }
+        })
       },
+
+      _startIframeVideo: function (video) {
+        // Start the iframe videos.
+        var videoIframeSrc = video.dataset.mediavideoSrc;
+        // If it's a youtube or vimeo video then add an autoplay attr on the end
+        // of the url.
+        if (videoIframeSrc.indexOf('youtube') >= 0 || videoIframeSrc.indexOf('vimeo') >= 0) {
+          // Find out if we need to fstart the query parameter or add
+          // on to an existing one.
+          if (videoIframeSrc.indexOf('?') >= 0) {
+            videoIframeSrc += '&autoplay=1';
+          }
+          else {
+            videoIframeSrc += '?autoplay=1';
+          }
+        }
+        // Add it to the source attribute to load the video.
+        video.setAttribute('src', videoIframeSrc);
+      },
+
+      _stopIframeVideo: function (video) {
+        video.setAttribute('src', '');
+      },
+
     });
   </script>
 </dom-module>
